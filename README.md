@@ -1,4 +1,4 @@
-﻿# FlashKit 安卓刷机工具箱
+# FlashKit 安卓刷机工具箱
 
 > **项目状态：已暂停 / 停止开发（2026-11）**  
 > 这是停止维护时的源码与设计记录。功能可用，但文件系统的开机级元数据恢复仍未闭环，详见下方“已知限制”。
@@ -6,6 +6,10 @@
 一个基于 **WinUI 3 + Windows App SDK + C# / .NET 8** 的原生 Windows 11 桌面刷机工具箱。目标是把 ADB、Fastboot、分区备份/还原、镜像处理、文件传输和文件系统解包放在一个统一、可审计的桌面应用里，而不是散落的脚本。
 
 > ⚠️ 刷机有风险。请确认镜像与机型、分区完全匹配，并提前备份。本项目不判断第三方镜像是否可信。
+
+## 下载
+
+- [FlashKit V2.2 Windows x64 自包含压缩包](https://github.com/K3huazhi/FlashKit-Huazhi/releases/download/v2.2.0/FlashKit-win-x64-v2.2.0.zip)（96.7 MB，解压后运行 `FlashKit.exe`）
 
 ## 功能
 
