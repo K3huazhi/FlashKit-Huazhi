@@ -1,0 +1,20 @@
+# Build outputs
+bin/
+obj/
+artifacts/
+.vs/
+*.user
+*.suo
+
+# Test / coverage
+TestResults/
+*.trx
+*.coverage
+
+# Local screenshots / scratch
+screenshot-*.png
+*.log
+samples/
+
+# Temporary package outputs
+*.zip.tmp

@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="FlashKit.App.Views.BackupPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:loc="using:FlashKit.App.Localization"
+    xmlns:vm="using:FlashKit.App.ViewModels"
+    NavigationCacheMode="Required"
+    Background="Transparent">
+
+    <Grid Padding="20" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid RowSpacing="6">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <StackPanel Spacing="3">
+                <TextBlock Text="{loc:Loc Key=BackupPage}" Style="{StaticResource PageTitleStyle}" />
+                <TextBlock Text="{loc:Loc Key=BackupSubtitle}" Style="{StaticResource PageSubtitleStyle}" />
+            </StackPanel>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                <Button Content="{loc:Loc Key=L062}" Command="{x:Bind ViewModel.RefreshPartitionsCommand}" MinWidth="96" />
+                <Button Content="{loc:Loc Key=BackupRebootRecovery}" Command="{x:Bind ViewModel.RebootToRecoveryCommand}" MinWidth="96" />
+                <Button Content="{loc:Loc Key=L067}" Command="{x:Bind ViewModel.RebootToSystemCommand}" MinWidth="96" />
+            </StackPanel>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="10">
+                <InfoBar
+                    IsOpen="{x:Bind ViewModel.HasError, Mode=OneWay}"
+                    Severity="Error"
+                    Title="{loc:Loc Key=L063}"
+                    Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                    IsClosable="False" />
+
+                <InfoBar
+                    IsOpen="{x:Bind ViewModel.HasWarning, Mode=OneWay}"
+                    Severity="Warning"
+                    Title="{loc:Loc Key=BackupReadHint}"
+                    Message="{x:Bind ViewModel.WarningMessage, Mode=OneWay}"
+                    IsClosable="False" />
+
+                <InfoBar
+                    IsOpen="{x:Bind ViewModel.OrphanLogicalSelected, Mode=OneWay}"
+                    Severity="Warning"
+                    Title="{loc:Loc Key=BackupOrphanTitle}"
+                    Message="{x:Bind ViewModel.OrphanLogicalMessage, Mode=OneWay}"
+                    IsClosable="False" />
+
+                <InfoBar
+                    IsOpen="{x:Bind ViewModel.HasHighRiskSelection, Mode=OneWay}"
+                    Severity="Warning"
+                    Title="{loc:Loc Key=BackupHighRisk}"
+                    Message="{loc:Loc Key=BackupHighRiskNotice}"
+                    IsClosable="False" />
+
+                <Border Style="{StaticResource ContentCardStyle}">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="{x:Bind ViewModel.DeviceSummary, Mode=OneWay}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="{x:Bind ViewModel.ModeText, Mode=OneWay}" Style="{StaticResource CaptionTextStyle}" />
+                            <TextBlock
+                                Text="{x:Bind ViewModel.RootStatusText, Mode=OneWay}"
+                                Style="{StaticResource CaptionTextStyle}"
+                                Visibility="{x:Bind ViewModel.IsEnvironmentSupported, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                            <TextBlock Text="{x:Bind ViewModel.TransportText, Mode=OneWay}" Style="{StaticResource CaptionTextStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.CatalogStatus, Mode=OneWay}" Style="{StaticResource CaptionTextStyle}" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                        <TextBlock
+                            Text="{loc:Loc Key=BackupFastbootOnly}"
+                            Style="{StaticResource CaptionTextStyle}"
+                            Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                            TextWrapping="Wrap"
+                            Visibility="{x:Bind ViewModel.IsEnvironmentSupported, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}" />
+                        <TextBlock
+                            Text="{x:Bind ViewModel.EnvironmentText, Mode=OneWay}"
+                            Style="{StaticResource CaptionTextStyle}"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Text="{loc:Loc Key=BackupNoDevice}"
+                            Style="{StaticResource CaptionTextStyle}"
+                            TextWrapping="Wrap"
+                            Visibility="{x:Bind ViewModel.HasDevice, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}" />
+                        <Grid ColumnSpacing="8" Margin="0,3,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{loc:Loc Key=BackupDestination}" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" />
+                            <TextBlock
+                                Grid.Column="1"
+                                Text="{x:Bind ViewModel.DestinationRoot, Mode=OneWay}"
+                                TextTrimming="CharacterEllipsis"
+                                ToolTipService.ToolTip="{x:Bind ViewModel.DestinationRoot, Mode=OneWay}"
+                                VerticalAlignment="Center" />
+                            <Button Grid.Column="2" Content="{loc:Loc Key=BackupChangeDestination}" Click="ChangeDestination_Click" />
+                        </Grid>
+                        <TextBlock Text="{x:Bind ViewModel.DestinationHint, Mode=OneWay}" Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource ContentCardStyle}">
+                    <StackPanel Spacing="8">
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="{loc:Loc Key=BackupSelectionTitle}" Style="{StaticResource SectionTitleStyle}" />
+                                <TextBlock Text="{x:Bind ViewModel.SelectedSummary, Mode=OneWay}" Style="{StaticResource CaptionTextStyle}" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <Button Content="{loc:Loc Key=L080}" Command="{x:Bind ViewModel.SelectAllCommand}" MinWidth="96" />
+                                <Button Content="{loc:Loc Key=InvertSelection}" Command="{x:Bind ViewModel.InvertSelectionCommand}" MinWidth="96" />
+                                <Button Content="{loc:Loc Key=BackupSelectRegular}" Command="{x:Bind ViewModel.SelectRegularCommand}" MinWidth="96" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="{x:Bind ViewModel.SpaceStatus, Mode=OneWay}" Style="{StaticResource CaptionTextStyle}" />
+                        <TextBlock Text="{loc:Loc Key=BackupManifestNote}" Style="{StaticResource CaptionTextStyle}" />
+
+                        <TextBlock
+                            Text="{loc:Loc Key=BackupNoPartitions}"
+                            Style="{StaticResource CaptionTextStyle}"
+                            Visibility="{x:Bind ViewModel.HasSelectablePartitions, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}" />
+
+                        <TextBlock Text="{loc:Loc Key=BackupRegular}" Style="{StaticResource SectionTitleStyle}" Margin="0,4,0,0" />
+                        <ListView
+                            ItemsSource="{x:Bind ViewModel.RegularPartitions}"
+                            SelectionMode="None"
+                            MaxHeight="220"
+                            IsEnabled="{x:Bind ViewModel.IsNotBusy, Mode=OneWay}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="vm:BackupPartitionViewModel">
+                                    <Grid Padding="8,4" ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="170" />
+                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="60" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox
+                                            Grid.Column="0"
+                                            IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                            IsEnabled="{x:Bind IsEnabled, Mode=OneWay}"
+                                            MinWidth="0" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Text="{x:Bind DisplayName, Mode=OneWay}"
+                                            FontFamily="Cascadia Mono, Consolas"
+                                            TextTrimming="CharacterEllipsis"
+                                            VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="{x:Bind SizeText}" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" />
+                                        <TextBlock
+                                            Grid.Column="3"
+                                            Text="{x:Bind RiskText}"
+                                            Foreground="{x:Bind Risk, Converter={StaticResource RiskToBrush}}"
+                                            FontWeight="SemiBold"
+                                            VerticalAlignment="Center" />
+                                        <TextBlock
+                                            Grid.Column="4"
+                                            Text="{x:Bind StatusText, Mode=OneWay}"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{StaticResource CaptionTextStyle}"
+                                            TextTrimming="CharacterEllipsis"
+                                            VerticalAlignment="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <TextBlock Text="{loc:Loc Key=BackupLogical}" Style="{StaticResource SectionTitleStyle}" Margin="0,4,0,0" />
+                        <ListView
+                            ItemsSource="{x:Bind ViewModel.LogicalPartitions}"
+                            SelectionMode="None"
+                            MaxHeight="220"
+                            IsEnabled="{x:Bind ViewModel.IsNotBusy, Mode=OneWay}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="vm:BackupPartitionViewModel">
+                                    <Grid Padding="8,4" ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="170" />
+                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="60" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox
+                                            Grid.Column="0"
+                                            IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                            IsEnabled="{x:Bind IsEnabled, Mode=OneWay}"
+                                            MinWidth="0" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Text="{x:Bind DisplayName, Mode=OneWay}"
+                                            FontFamily="Cascadia Mono, Consolas"
+                                            TextTrimming="CharacterEllipsis"
+                                            VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="{x:Bind SizeText}" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" />
+                                        <TextBlock
+                                            Grid.Column="3"
+                                            Text="{x:Bind RiskText}"
+                                            Foreground="{x:Bind Risk, Converter={StaticResource RiskToBrush}}"
+                                            FontWeight="SemiBold"
+                                            VerticalAlignment="Center" />
+                                        <TextBlock
+                                            Grid.Column="4"
+                                            Text="{x:Bind StatusText, Mode=OneWay}"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{StaticResource CaptionTextStyle}"
+                                            TextTrimming="CharacterEllipsis"
+                                            VerticalAlignment="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <Expander
+                            Header="{loc:Loc Key=BackupHighRisk}"
+                            IsExpanded="False"
+                            Visibility="{x:Bind ViewModel.HasHighRiskPartitions, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                            <ListView
+                                ItemsSource="{x:Bind ViewModel.HighRiskPartitions}"
+                                SelectionMode="None"
+                                MaxHeight="200"
+                                IsEnabled="{x:Bind ViewModel.IsNotBusy, Mode=OneWay}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:BackupPartitionViewModel">
+                                        <Grid Padding="8,4" ColumnSpacing="8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="170" />
+                                                <ColumnDefinition Width="100" />
+                                                <ColumnDefinition Width="60" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <CheckBox
+                                                Grid.Column="0"
+                                                IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                                IsEnabled="{x:Bind IsEnabled, Mode=OneWay}"
+                                                MinWidth="0" />
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                Text="{x:Bind DisplayName, Mode=OneWay}"
+                                                FontFamily="Cascadia Mono, Consolas"
+                                                TextTrimming="CharacterEllipsis"
+                                                VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{x:Bind SizeText}" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" />
+                                            <TextBlock
+                                                Grid.Column="3"
+                                                Text="{x:Bind RiskText}"
+                                                Foreground="{x:Bind Risk, Converter={StaticResource RiskToBrush}}"
+                                                FontWeight="SemiBold"
+                                                VerticalAlignment="Center" />
+                                            <TextBlock
+                                                Grid.Column="4"
+                                                Text="{x:Bind StatusText, Mode=OneWay}"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{StaticResource CaptionTextStyle}"
+                                                TextTrimming="CharacterEllipsis"
+                                                VerticalAlignment="Center" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </Expander>
+                    </StackPanel>
+                </Border>
+
+                <InfoBar
+                    IsOpen="{x:Bind ViewModel.HasBackupResult, Mode=OneWay}"
+                    Severity="Success"
+                    Title="{loc:Loc Key=BackupResultTitle}"
+                    Message="{x:Bind ViewModel.BackupResultText, Mode=OneWay}"
+                    IsClosable="False" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border
+            Grid.Row="2"
+            Background="{ThemeResource LayerFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="6"
+            Padding="12,8">
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Spacing="4">
+                    <TextBlock Text="{x:Bind ViewModel.SelectedSummary, Mode=OneWay}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <ProgressBar
+                        Value="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
+                        IsIndeterminate="False"
+                        Maximum="100"
+                        Height="4"
+                        Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                    <TextBlock Text="{x:Bind ViewModel.ProgressStatus, Mode=OneWay}" Style="{StaticResource CaptionTextStyle}" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <Button Content="{loc:Loc Key=BackupOpenOutput}" Command="{x:Bind ViewModel.OpenOutputCommand}" MinWidth="96" />
+                    <Button Content="{loc:Loc Key=BackupCancel}" Command="{x:Bind ViewModel.CancelBackupCommand}" MinWidth="96" Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                    <Button
+                        Content="{loc:Loc Key=BackupStart}"
+                        Click="StartBackup_Click"
+                        IsEnabled="{x:Bind ViewModel.CanStartBackup, Mode=OneWay}"
+                        MinWidth="96"
+                        Style="{StaticResource AccentActionButtonStyle}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>

@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.22621.0</TargetPlatformMinVersion>
+    <SupportedOSPlatformVersion>10.0.22621.0</SupportedOSPlatformVersion>
+    <RootNamespace>FlashKit.App</RootNamespace>
+    <AssemblyName>FlashKit</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PlatformTarget>x64</PlatformTarget>
+    <Platforms>x64</Platforms>
+    <Nullable>enable</Nullable>
+    <EnableMsixTooling>false</EnableMsixTooling>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <PublishSingleFile>false</PublishSingleFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.6.4" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FlashKit.Core\FlashKit.Core.csproj" />
+    <ProjectReference Include="..\FlashKit.Services\FlashKit.Services.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\platform-tools\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>tools\platform-tools\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
+    <Content Include="tools\7zip\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>tools\7zip\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
+    <None Remove="tools\platform-tools\**\*" />
+    <None Remove="tools\7zip\**\*" />
+  </ItemGroup>
+
+  <!--
+    Windows App SDK 的 unpackaged publish 目标不会自动把 XAML 编译器生成的
+    .xbf 与 <Assembly>.pri 带到 publish 目录。缺少它们时，运行时会在
+    ms-appx:///MainWindow.xaml 处直接 XamlParseException。
+  -->
+  <Target Name="CopyWinUIXamlResourcesToPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <WinUIXamlPublishFiles Include="$(TargetDir)**\*.xbf" />
+      <WinUIXamlPublishFiles Include="$(TargetDir)$(AssemblyName).pri" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(WinUIXamlPublishFiles)"
+      DestinationFolder="$(PublishDir)%(RecursiveDir)"
+      SkipUnchangedFiles="true" />
+  </Target>
+</Project>

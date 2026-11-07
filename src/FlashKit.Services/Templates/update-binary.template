@@ -1,0 +1,69 @@
+#!/sbin/sh
+# FlashKit generic update-binary
+# 说明：这是面向“纯 img 直塞 ZIP”的通用 shell 模板，不是 AOSP edify 解释器。
+# 不同 recovery 的 unzip/toybox 能力差异较大，请先确认你的 recovery 支持该流程。
+# 结构正确不代表设备一定能刷；刷机前务必备份，并确认镜像与机型匹配。
+
+OUTFD=/proc/self/fd/$2
+ZIPFILE="$3"
+TMPDIR="/tmp/flashkit_$$"
+PARTITIONS="{{PARTITIONS}}"
+
+ui_print() {
+    echo "ui_print $1" > "$OUTFD"
+    echo "ui_print" > "$OUTFD"
+}
+
+ui_print("FlashKit 卡刷包")
+ui_print("目标分区: $PARTITIONS")
+
+mkdir -p "$TMPDIR" || { ui_print("无法创建临时目录"); exit 1; }
+
+if command -v unzip >/dev/null 2>&1; then
+    unzip -o "$ZIPFILE" '*.img' -d "$TMPDIR" >/dev/null 2>&1
+elif command -v busybox >/dev/null 2>&1; then
+    busybox unzip -o "$ZIPFILE" '*.img' -d "$TMPDIR" >/dev/null 2>&1
+else
+    ui_print("当前 recovery 没有 unzip，无法继续")
+    rm -rf "$TMPDIR"
+    exit 1
+fi
+
+SLOT=$(getprop ro.boot.slot_suffix 2>/dev/null)
+FAILED=0
+
+for PART in $PARTITIONS; do
+    IMG="$TMPDIR/$PART.img"
+    if [ ! -f "$IMG" ]; then
+        ui_print("缺少镜像: $PART.img")
+        FAILED=1
+        continue
+    fi
+
+    TARGET="/dev/block/by-name/$PART"
+    if [ ! -e "$TARGET" ] && [ -n "$SLOT" ]; then
+        TARGET="/dev/block/by-name/$PART$SLOT"
+    fi
+    if [ ! -e "$TARGET" ]; then
+        TARGET="/dev/block/mapper/$PART"
+    fi
+    if [ ! -e "$TARGET" ]; then
+        ui_print("找不到分区: $PART")
+        FAILED=1
+        continue
+    fi
+
+    ui_print("正在刷入 $PART ...")
+    dd if="$IMG" of="$TARGET" bs=4096 2>/dev/null || FAILED=1
+done
+
+sync
+rm -rf "$TMPDIR"
+
+if [ "$FAILED" -ne 0 ]; then
+    ui_print("刷入过程中出现错误，请检查日志")
+    exit 1
+fi
+
+ui_print("全部镜像刷入完成")
+exit 0

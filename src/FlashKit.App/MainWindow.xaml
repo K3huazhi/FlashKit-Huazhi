@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="FlashKit.App.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:loc="using:FlashKit.App.Localization">
+    <Window.SystemBackdrop>
+        <MicaBackdrop Kind="Base" />
+    </Window.SystemBackdrop>
+
+    <Grid x:Name="RootLayout" Background="Transparent">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TitleBar
+            x:Name="AppTitleBar"
+            Grid.Row="0"
+            Title="{loc:Loc Key=L001}"
+            IsBackButtonVisible="False"
+            IsPaneToggleButtonVisible="True"
+            PaneToggleRequested="AppTitleBar_PaneToggleRequested"
+            AutoRefreshDragRegions="True">
+            <TitleBar.Content>
+                <Grid ColumnSpacing="14" VerticalAlignment="Center" Margin="8,0,8,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                        <Ellipse
+                            Width="8"
+                            Height="8"
+                            VerticalAlignment="Center"
+                            Fill="{Binding ConnectionState, Converter={StaticResource ConnectionToBrush}}" />
+                        <TextBlock
+                            Text="{Binding DeviceSerialText}"
+                            VerticalAlignment="Center"
+                            FontSize="12" />
+                    </StackPanel>
+
+                    <TextBlock
+                        Grid.Column="1"
+                        Text="{Binding ModeText}"
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                    <TextBlock
+                        Grid.Column="2"
+                        Text="{Binding ConnectionText}"
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                    <Border
+                        Grid.Column="3"
+                        Background="{ThemeResource SystemFillColorCautionBackgroundBrush}"
+                        CornerRadius="4"
+                        Padding="8,2"
+                        VerticalAlignment="Center"
+                        Visibility="{Binding IsFlashing, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock
+                            Text="{Binding TitleStatusText}"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Foreground="{ThemeResource SystemFillColorCautionBrush}" />
+                    </Border>
+
+                    <FontIcon
+                        Grid.Column="4"
+                        Glyph="&#xE7BA;"
+                        FontSize="14"
+                        Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                        VerticalAlignment="Center"
+                        Visibility="{Binding HasDriverWarning, Converter={StaticResource BoolToVisibility}}"
+                        ToolTipService.ToolTip="{Binding DriverWarning}" />
+                </Grid>
+            </TitleBar.Content>
+        </TitleBar>
+
+        <NavigationView
+            x:Name="RootNavigationView"
+            Grid.Row="1"
+            PaneDisplayMode="Left"
+            CompactPaneLength="104"
+            OpenPaneLength="220"
+            IsBackButtonVisible="Collapsed"
+            IsPaneToggleButtonVisible="False"
+            IsSettingsVisible="False"
+            Background="Transparent"
+            SelectionChanged="RootNavigationView_SelectionChanged">
+            <NavigationView.Resources>
+                <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="Transparent" />
+                <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="Transparent" />
+                <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+            </NavigationView.Resources>
+            <NavigationView.MenuItems>
+                <NavigationViewItem Content="{loc:Loc Key=TaskQueuePage}" Tag="tasks" Margin="0,2">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE81C;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="{loc:Loc Key=DeviceInfo}" Tag="device" IsSelected="True" Margin="0,2">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE7F8;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="{loc:Loc Key=BackupPage}" Tag="backup" Margin="0,2">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8F1;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="{loc:Loc Key=RestorePage}" Tag="restore" Margin="0,2">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE777;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="{loc:Loc Key=L004}" Tag="flash" Margin="0,2">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE7B8;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="{loc:Loc Key=L006}" Tag="package" Margin="0,2">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8B7;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="{loc:Loc Key=ImageToolsPage}" Tag="image" Margin="0,2">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE91B;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="{loc:Loc Key=FileManagerPage}" Tag="files" Margin="0,2">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8B7;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="{loc:Loc Key=FileSystemPage}" Tag="filesystem" Margin="0,2">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE9D9;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+
+            <NavigationView.PaneFooter>
+                <StackPanel
+                    Orientation="Horizontal"
+                    Spacing="2"
+                    HorizontalAlignment="Center"
+                    Padding="0,4">
+                    <Button
+                        Style="{StaticResource FooterIconButtonStyle}"
+                        Click="SettingsButton_Click"
+                        ToolTipService.ToolTip="{loc:Loc Key=L007}">
+                        <FontIcon Glyph="&#xE713;" FontSize="16" />
+                    </Button>
+                    <Button
+                        Style="{StaticResource FooterIconButtonStyle}"
+                        Click="TerminalButton_Click"
+                        ToolTipService.ToolTip="{loc:Loc Key=L008}">
+                        <FontIcon Glyph="&#xE756;" FontSize="16" />
+                    </Button>
+                    <Button
+                        Style="{StaticResource FooterIconButtonStyle}"
+                        Click="LogButton_Click"
+                        ToolTipService.ToolTip="{loc:Loc Key=L009}">
+                        <FontIcon Glyph="&#xE9D9;" FontSize="16" />
+                    </Button>
+                </StackPanel>
+            </NavigationView.PaneFooter>
+
+            <Frame x:Name="RootFrame" />
+        </NavigationView>
+
+        <InfoBar
+            Grid.Row="2"
+            IsOpen="{Binding IsFlashing}"
+            Severity="Warning"
+            Title="{loc:Loc Key=L010}"
+            Message="{Binding FlashingDescription}"
+            IsClosable="False" />
+    </Grid>
+</Window>
+

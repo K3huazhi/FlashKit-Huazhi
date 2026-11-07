@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="FlashKit.App.Views.FlashPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:loc="using:FlashKit.App.Localization"
+    xmlns:models="using:FlashKit.Core.Models"
+    xmlns:vm="using:FlashKit.App.ViewModels"
+    NavigationCacheMode="Required"
+    Background="Transparent">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Padding="20,16,20,8" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="4">
+                <TextBlock Text="{loc:Loc Key=L060}" Style="{StaticResource PageTitleStyle}" />
+                <TextBlock
+                    Text="{loc:Loc Key=L061}"
+                    Style="{StaticResource PageSubtitleStyle}" />
+            </StackPanel>
+            <ProgressRing Grid.Column="1" IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" Width="22" Height="22" VerticalAlignment="Center" />
+            <Button Grid.Column="2" Content="{loc:Loc Key=L062}" Command="{x:Bind ViewModel.RefreshPartitionsCommand}" VerticalAlignment="Center" />
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" Padding="20,0,20,12" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="10" MaxWidth="1320" HorizontalAlignment="Stretch">
+                <InfoBar
+                    IsOpen="{x:Bind ViewModel.HasError, Mode=OneWay}"
+                    Severity="Error"
+                    Title="{loc:Loc Key=L063}"
+                    Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" />
+
+                <InfoBar
+                    IsOpen="{x:Bind ViewModel.HasStatusMessage, Mode=OneWay}"
+                    Severity="Informational"
+                    Title="{loc:Loc Key=L064}"
+                    Message="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" />
+
+                <Border Style="{StaticResource ContentCardStyle}">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{x:Bind ViewModel.DeviceSummary, Mode=OneWay}" FontWeight="SemiBold" />
+                            <TextBlock Text="{x:Bind ViewModel.CatalogStatus, Mode=OneWay}" Style="{StaticResource CaptionTextStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.FastbootdStatus, Mode=OneWay}" Style="{StaticResource CaptionTextStyle}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Button Content="{loc:Loc Key=L065}" Command="{x:Bind ViewModel.RebootToFastbootCommand}" />
+                            <Button Content="{loc:Loc Key=L066}" Command="{x:Bind ViewModel.RebootToFastbootdCommand}" />
+                            <Button Content="{loc:Loc Key=L067}" Command="{x:Bind ViewModel.RebootToSystemCommand}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <InfoBar
+                    IsOpen="{x:Bind ViewModel.HasPartitionWarnings, Mode=OneWay}"
+                    Severity="Warning"
+                    Title="{loc:Loc Key=L068}"
+                    Message="{x:Bind ViewModel.PartitionWarnings, Mode=OneWay}" />
+
+                <InfoBar
+                    IsOpen="{x:Bind ViewModel.HasDynamicSelected, Mode=OneWay}"
+                    Severity="Warning"
+                    Title="{loc:Loc Key=L069}"
+                    Message="{x:Bind ViewModel.DynamicHint, Mode=OneWay}" />
+
+                <Border x:Name="ConfigCard" Style="{StaticResource ContentCardStyle}" IsHitTestVisible="{x:Bind ViewModel.IsNotFlashing, Mode=OneWay}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{loc:Loc Key=L070}" Style="{StaticResource SectionTitleStyle}" />
+                        <RadioButtons
+                            SelectedIndex="{x:Bind ViewModel.InputModeIndex, Mode=TwoWay}"
+                            MaxColumns="2">
+                            <RadioButton Content="{loc:Loc Key=FlashModeManual}" />
+                            <RadioButton Content="{loc:Loc Key=FlashModeFolder}" />
+                        </RadioButtons>
+
+                        <StackPanel
+                            Spacing="8"
+                            Visibility="{x:Bind ViewModel.IsManualMode, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox
+                                    Text="{x:Bind ViewModel.ManualPartitionName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    PlaceholderText="{loc:Loc Key=L071}"
+                                    FontFamily="Cascadia Mono, Consolas"
+                                    VerticalAlignment="Center" />
+                                <Button Grid.Column="1" Content="{loc:Loc Key=L072}" Click="AddManualTask_Click" Style="{StaticResource AccentActionButtonStyle}" />
+                            </Grid>
+                            <TextBlock Text="{x:Bind ViewModel.ManualPartitionHint, Mode=OneWay}" Style="{StaticResource CaptionTextStyle}" />
+                        </StackPanel>
+
+                        <StackPanel
+                            Spacing="8"
+                            Visibility="{x:Bind ViewModel.IsScanMode, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox
+                                    Text="{x:Bind ViewModel.ScanFolderPath, Mode=OneWay}"
+                                    IsReadOnly="True"
+                                    PlaceholderText="{loc:Loc Key=L077}"
+                                    VerticalAlignment="Center" />
+                                <Button Grid.Column="1" Content="{loc:Loc Key=L078}" Click="ScanFolder_Click" Style="{StaticResource AccentActionButtonStyle}" />
+                                <Button Grid.Column="2" Content="{loc:Loc Key=L079}" Command="{x:Bind ViewModel.RescanFolderCommand}" />
+                                <Button
+                                    Grid.Column="3"
+                                    Content="{loc:Loc Key=CancelScan}"
+                                    Command="{x:Bind ViewModel.CancelScanCommand}"
+                                    Visibility="{x:Bind ViewModel.IsScanning, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                            </Grid>
+                            <TextBlock Text="{x:Bind ViewModel.ScanStatus, Mode=OneWay}" Style="{StaticResource CaptionTextStyle}" />
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Button Content="{loc:Loc Key=L080}" Command="{x:Bind ViewModel.SelectAllCandidatesCommand}" MinWidth="80" />
+                                    <Button Content="{loc:Loc Key=InvertSelection}" Command="{x:Bind ViewModel.InvertCandidatesCommand}" MinWidth="80" />
+                                    <Button Content="{loc:Loc Key=SelectRecognized}" Command="{x:Bind ViewModel.SelectRecognizedCandidatesCommand}" MinWidth="112" />
+                                </StackPanel>
+                                <Button
+                                    Grid.Column="1"
+                                    Content="{loc:Loc Key=L084}"
+                                    Command="{x:Bind ViewModel.AddSelectedCandidatesCommand}"
+                                    Style="{StaticResource AccentActionButtonStyle}" />
+                            </Grid>
+
+                            <TextBlock Text="{loc:Loc Key=L081}" Style="{StaticResource SectionTitleStyle}" />
+                            <ListView
+                                ItemsSource="{x:Bind ViewModel.MatchedCandidates}"
+                                SelectionMode="None"
+                                MaxHeight="200"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ScanCandidateViewModel">
+                                        <Grid Padding="8,6" ColumnSpacing="10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="130" />
+                                                <ColumnDefinition Width="110" />
+                                                <ColumnDefinition Width="70" />
+                                            </Grid.ColumnDefinitions>
+                                            <CheckBox Grid.Column="0" IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
+                                            <StackPanel Grid.Column="1" Spacing="2">
+                                                <TextBlock Text="{x:Bind FileName}" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{x:Bind FilePath}" Style="{StaticResource CaptionTextStyle}" TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                            <TextBox
+                                                Grid.Column="2"
+                                                Text="{x:Bind PartitionName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                FontFamily="Cascadia Mono, Consolas"
+                                                PlaceholderText="{loc:Loc Key=L083}"
+                                                VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="3" Text="{x:Bind SizeText}" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" />
+                                            <TextBlock
+                                                Grid.Column="4"
+                                                Text="{x:Bind RiskText, Mode=OneWay}"
+                                                Foreground="{x:Bind Risk, Mode=OneWay, Converter={StaticResource RiskToBrush}}"
+                                                FontWeight="SemiBold"
+                                                VerticalAlignment="Center" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
+                            <TextBlock Text="{loc:Loc Key=L082}" Style="{StaticResource SectionTitleStyle}" />
+                            <StackPanel Spacing="8">
+                                    <ListView
+                                        ItemsSource="{x:Bind ViewModel.UnmatchedCandidates}"
+                                        SelectionMode="None"
+                                        MaxHeight="200"
+                                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="6">
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:ScanCandidateViewModel">
+                                                <Grid Padding="8,6" ColumnSpacing="10">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="190" />
+                                                        <ColumnDefinition Width="110" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <CheckBox Grid.Column="0" IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
+                                                    <StackPanel Grid.Column="1" Spacing="2">
+                                                        <TextBlock Text="{x:Bind FileName}" TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Text="{x:Bind NameStatusText, Mode=OneWay}" Foreground="{x:Bind IsKnownPartition, Mode=OneWay, Converter={StaticResource BoolToBrush}}" Style="{StaticResource CaptionTextStyle}" />
+                                                    </StackPanel>
+                                                    <TextBox
+                                                        Grid.Column="2"
+                                                        Text="{x:Bind PartitionName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                        PlaceholderText="{loc:Loc Key=L083}"
+                                                        FontFamily="Cascadia Mono, Consolas"
+                                                        VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="3" Text="{x:Bind SizeText}" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource ContentCardStyle}" IsHitTestVisible="{x:Bind ViewModel.IsNotFlashing, Mode=OneWay}">
+                    <StackPanel Spacing="8">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="{loc:Loc Key=L085}" Style="{StaticResource SectionTitleStyle}" />
+                                <TextBlock Text="{x:Bind ViewModel.SummaryText, Mode=OneWay}" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="{loc:Loc Key=L086}" Command="{x:Bind ViewModel.ClearTasksCommand}" />
+                        </Grid>
+
+                        <ListView
+                            ItemsSource="{x:Bind ViewModel.Tasks}"
+                            SelectionMode="None"
+                            IsEnabled="{x:Bind ViewModel.IsNotFlashing, Mode=OneWay}"
+                            MaxHeight="340"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="vm:FlashTaskViewModel">
+                                    <Grid Padding="8,8" ColumnSpacing="10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="24" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="150" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" IsChecked="{x:Bind IsSelected, Mode=TwoWay}" VerticalAlignment="Top" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Text="{x:Bind Sequence}"
+                                            FontFamily="Cascadia Mono, Consolas"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            VerticalAlignment="Top"
+                                            Margin="0,6,0,0" />
+                                        <StackPanel Grid.Column="2" Spacing="3">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBox
+                                                    Text="{x:Bind PartitionName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    Width="150"
+                                                    FontFamily="Cascadia Mono, Consolas"
+                                                    FontWeight="SemiBold" />
+                                                <TextBlock
+                                                    Text="{x:Bind RiskText, Mode=OneWay}"
+                                                    Foreground="{x:Bind Risk, Mode=OneWay, Converter={StaticResource RiskToBrush}}"
+                                                    FontWeight="SemiBold"
+                                                    VerticalAlignment="Center"
+                                                    Visibility="{x:Bind RiskText, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
+                                                <TextBlock
+                                                    Text="{x:Bind DynamicText, Mode=OneWay}"
+                                                    Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                                    Style="{StaticResource CaptionTextStyle}"
+                                                    VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            <TextBlock Text="{x:Bind FileName}" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{x:Bind FilePath}" Style="{StaticResource CaptionTextStyle}" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{x:Bind SizeText}" Style="{StaticResource CaptionTextStyle}" />
+                                            <TextBlock Text="{x:Bind SizeComparisonText, Mode=OneWay}" Style="{StaticResource CaptionTextStyle}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="3" Spacing="3" VerticalAlignment="Center">
+                                            <TextBlock
+                                                Text="{x:Bind StatusText, Mode=OneWay}"
+                                                FontWeight="SemiBold"
+                                                Foreground="{x:Bind State, Mode=OneWay, Converter={StaticResource FlashStateToBrush}}" />
+                                            <TextBlock Text="{x:Bind ExitCodeText, Mode=OneWay}" Style="{StaticResource CaptionTextStyle}" />
+                                            <TextBlock
+                                                Text="{x:Bind ValidationMessage, Mode=OneWay}"
+                                                Style="{StaticResource CaptionTextStyle}"
+                                                TextWrapping="Wrap"
+                                                MaxLines="3"
+                                                TextTrimming="CharacterEllipsis"
+                                                Visibility="{x:Bind HasValidationMessage, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                                        </StackPanel>
+                                        <Button
+                                            Grid.Column="4"
+                                            Content="{loc:Loc Key=L087}"
+                                            Click="RemoveTask_Click"
+                                            VerticalAlignment="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <Grid ColumnSpacing="10" Margin="0,2,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox
+                                Text="{x:Bind ViewModel.ExpectedCodename, Mode=TwoWay}"
+                                PlaceholderText="{loc:Loc Key=L090}"
+                                VerticalAlignment="Center" />
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                Header="{loc:Loc Key=L091}"
+                                IsOn="{x:Bind ViewModel.VerifyDeviceCodename, Mode=TwoWay}"
+                                VerticalAlignment="Center" />
+                            <ToggleSwitch
+                                Grid.Column="2"
+                                Header="{loc:Loc Key=L092}"
+                                IsOn="{x:Bind ViewModel.ContinueOnFailure, Mode=TwoWay}"
+                                VerticalAlignment="Center" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border
+            Grid.Row="2"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0"
+            Padding="20,10">
+            <Grid ColumnSpacing="20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Spacing="4">
+                    <TextBlock Text="{x:Bind ViewModel.SummaryText, Mode=OneWay}" FontWeight="SemiBold" />
+                    <TextBlock
+                        Text="{x:Bind ViewModel.HighRiskNotice, Mode=OneWay}"
+                        Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                        Style="{StaticResource CaptionTextStyle}"
+                        Visibility="{x:Bind ViewModel.HighRiskNotice, Converter={StaticResource StringToVisibility}}" />
+                    <ProgressBar
+                        Value="{x:Bind ViewModel.ProgressPercent, Mode=OneWay}"
+                        Maximum="100"
+                        Visibility="{x:Bind ViewModel.IsFlashing, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                    <TextBlock
+                        Text="{x:Bind ViewModel.ProgressStatus, Mode=OneWay}"
+                        Style="{StaticResource CaptionTextStyle}"
+                        Visibility="{x:Bind ViewModel.IsFlashing, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Button
+                        Content="{loc:Loc Key=L097}"
+                        Command="{x:Bind ViewModel.CancelFlashCommand}"
+                        Visibility="{x:Bind ViewModel.IsFlashing, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+                    <Button
+                        Content="{loc:Loc Key=L098}"
+                        Style="{StaticResource DangerButtonStyle}"
+                        Click="StartFlash_Click"
+                        IsEnabled="{x:Bind ViewModel.CanStartFlash, Mode=OneWay}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>
+

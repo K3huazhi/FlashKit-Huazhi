@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="FlashKit.App.Views.RestorePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:loc="using:FlashKit.App.Localization"
+    xmlns:vm="using:FlashKit.App.ViewModels"
+    NavigationCacheMode="Required"
+    Background="Transparent">
+
+    <Grid Padding="20" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Spacing="3">
+            <TextBlock Text="{loc:Loc Key=RestorePage}" Style="{StaticResource PageTitleStyle}" />
+            <TextBlock Text="{loc:Loc Key=RestoreSubtitle}" Style="{StaticResource PageSubtitleStyle}" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="10">
+                <InfoBar
+                    IsOpen="{x:Bind ViewModel.HasError, Mode=OneWay}"
+                    Severity="Error"
+                    Title="{loc:Loc Key=RestoreErrorTitle}"
+                    Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                    IsClosable="False" />
+
+                <InfoBar
+                    IsOpen="{x:Bind ViewModel.HasHighRiskSelection, Mode=OneWay}"
+                    Severity="Warning"
+                    Title="{loc:Loc Key=RestoreHighRiskTitle}"
+                    Message="{loc:Loc Key=RestoreHighRiskMessage}"
+                    IsClosable="False" />
+
+                <Border Style="{StaticResource ContentCardStyle}">
+                    <StackPanel Spacing="8">
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox
+                                Text="{x:Bind ViewModel.ManifestPath, Mode=OneWay}"
+                                PlaceholderText="{loc:Loc Key=RestoreChooseManifest}"
+                                IsReadOnly="True" />
+                            <Button Grid.Column="1" Content="{loc:Loc Key=RestoreChooseManifest}" Click="ChooseManifest_Click" MinWidth="120" />
+                        </Grid>
+                        <TextBlock Text="{x:Bind ViewModel.DeviceText, Mode=OneWay}" Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
+                        <TextBlock Text="{x:Bind ViewModel.WarningText, Mode=OneWay}" Style="{StaticResource CaptionTextStyle}" Foreground="{ThemeResource SystemFillColorCautionBrush}" TextWrapping="Wrap" />
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <ToggleSwitch Header="{loc:Loc Key=RestoreAllowMismatch}" IsOn="{x:Bind ViewModel.AllowModelMismatch, Mode=TwoWay}" />
+                            <ToggleSwitch Header="{loc:Loc Key=RestoreContinueOnError}" IsOn="{x:Bind ViewModel.ContinueOnError, Mode=TwoWay}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource ContentCardStyle}">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{loc:Loc Key=RestoreSelectPartitions}" FontWeight="SemiBold" />
+                        <TextBlock Text="{loc:Loc Key=RestoreSelectHint}" Style="{StaticResource CaptionTextStyle}" />
+                        <ListView ItemsSource="{x:Bind ViewModel.Partitions}" SelectionMode="None" MaxHeight="380">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="vm:RestorePartitionViewModel">
+                                    <Grid Padding="6,4" ColumnSpacing="10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox IsChecked="{x:Bind IsSelected, Mode=TwoWay}" MinWidth="0" />
+                                        <TextBlock Grid.Column="1" Text="{x:Bind Name}" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="{x:Bind SizeText}" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" />
+                                        <TextBlock
+                                            Grid.Column="3"
+                                            Text="{x:Bind RiskText}"
+                                            Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                            Style="{StaticResource CaptionTextStyle}"
+                                            VerticalAlignment="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                        <TextBlock Text="{x:Bind ViewModel.Status, Mode=OneWay}" Style="{StaticResource CaptionTextStyle}" />
+                        <ProgressBar Value="{x:Bind ViewModel.Progress, Mode=OneWay}" Maximum="100" />
+                    </StackPanel>
+                </Border>
+
+                <InfoBar
+                    IsOpen="{x:Bind ViewModel.HasResult, Mode=OneWay}"
+                    Severity="Informational"
+                    Title="{loc:Loc Key=RestoreResultTitle}"
+                    IsClosable="False">
+                    <InfoBar.Content>
+                        <TextBlock Text="{x:Bind ViewModel.ResultText, Mode=OneWay}" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                    </InfoBar.Content>
+                </InfoBar>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button Content="{loc:Loc Key=RestoreOpenBackup}" Click="OpenBackupDirectory_Click" MinWidth="120" />
+            <Button
+                Content="{loc:Loc Key=RestoreStart}"
+                Click="Start_Click"
+                IsEnabled="{x:Bind ViewModel.CanStart, Mode=OneWay}"
+                Style="{StaticResource AccentActionButtonStyle}" />
+        </StackPanel>
+    </Grid>
+</Page>
